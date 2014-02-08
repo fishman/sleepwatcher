@@ -9,9 +9,10 @@
 /* Begin PBXBuildFile section */
 		21662EBD082A6FC400B49DC5 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21662EBC082A6FC400B49DC5 /* CoreFoundation.framework */; };
 		216843A41229B652003FB221 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 216843A31229B652003FB221 /* CoreServices.framework */; };
-		218F24D60750B79A00867070 /* sleepwatcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* sleepwatcher.c */; settings = {ATTRIBUTES = (); }; };
 		218F24D80750B79A00867070 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F50472A70384531201000202 /* IOKit.framework */; };
 		218F24DD0750B79A00867070 /* sleepwatcher.8 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 21B8E55903B5F2F10069200C /* sleepwatcher.8 */; };
+		272287C518A65C2B00CEB797 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 272287C418A65C2B00CEB797 /* CoreGraphics.framework */; };
+		276C795618A6A2CC008B3A8C /* sleepwatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 276C795518A6A2CC008B3A8C /* sleepwatcher.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,11 +29,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		08FB7796FE84155DC02AAC07 /* sleepwatcher.c */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 8; lastKnownFileType = sourcecode.c.c; path = sleepwatcher.c; sourceTree = "<group>"; tabWidth = 8; usesTabs = 1; };
 		21662EBC082A6FC400B49DC5 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		216843A31229B652003FB221 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		218F24DE0750B79B00867070 /* sleepwatcher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sleepwatcher; sourceTree = BUILT_PRODUCTS_DIR; };
 		21B8E55903B5F2F10069200C /* sleepwatcher.8 */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = sleepwatcher.8; path = ../sleepwatcher.8; sourceTree = "<group>"; };
+		272287C418A65C2B00CEB797 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		276C795518A6A2CC008B3A8C /* sleepwatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = sleepwatcher.m; sourceTree = "<group>"; };
 		F50472A70384531201000202 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -41,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				272287C518A65C2B00CEB797 /* CoreGraphics.framework in Frameworks */,
 				218F24D80750B79A00867070 /* IOKit.framework in Frameworks */,
 				21662EBD082A6FC400B49DC5 /* CoreFoundation.framework in Frameworks */,
 				216843A41229B652003FB221 /* CoreServices.framework in Frameworks */,
@@ -53,6 +56,7 @@
 		08FB7794FE84155DC02AAC07 /* sleepwatcher */ = {
 			isa = PBXGroup;
 			children = (
+				272287C418A65C2B00CEB797 /* CoreGraphics.framework */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				210FC5960750FF69003F2374 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -64,7 +68,7 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				08FB7796FE84155DC02AAC07 /* sleepwatcher.c */,
+				276C795518A6A2CC008B3A8C /* sleepwatcher.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -133,6 +137,8 @@
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 2154E68B08B11AA100F18765 /* Build configuration list for PBXProject "sleepwatcher" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -167,7 +173,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				218F24D60750B79A00867070 /* sleepwatcher.c in Sources */,
+				276C795618A6A2CC008B3A8C /* sleepwatcher.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,36 +262,27 @@
 		2154E68C08B11AA100F18765 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx10.8;
 			};
 			name = Development;
 		};
 		2154E68D08B11AA100F18765 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx10.8;
 			};
 			name = Deployment;
 		};
 		2154E68E08B11AA100F18765 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx10.8;
 			};
 			name = Default;
 		};
