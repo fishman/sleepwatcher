@@ -32,6 +32,8 @@
 #include <libgen.h>
 #include <sys/wait.h>
 
+#include <AppKit/AppKit.h>
+
 #include <mach/mach_port.h>
 #include <mach/mach_interface.h>
 #include <mach/mach_init.h>
@@ -43,10 +45,14 @@
 #include <IOKit/IOMessage.h>
 #include <IOKit/hidsystem/IOHIDParameter.h>
 #include <IOKit/hidsystem/IOHIDShared.h>
+#include <IOKit/hidsystem/IOHIDLib.h>
+#include <IOKit/hidsystem/ev_keymap.h>
 #include <IOKit/hid/IOHIDManager.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <IOKit/ps/IOPowerSources.h>
 #include <IOKit/ps/IOPSKeys.h>
+
+#include <CoreGraphics/CGEvent.h>
 
 
 #define TIMER_RESOLUTION	0.1		/* seconds - when changing, adjust the man page! */
@@ -456,8 +462,8 @@ static void readConfig (const char *configfile)
 		for (op = longopts; op->name; op++) {
 			l = strlen(op->name);
 			if (! strncmp(op->name, buf, l)) {
-				if (op->has_arg == no_argument && buf[l] ||
-					op->has_arg != no_argument && buf[l] != '=')
+				if ((op->has_arg == no_argument && buf[l]) ||
+					(op->has_arg != no_argument && buf[l] != '='))
 					message (LOG_ERR, "malformed parameter '%s' in config file %s\n", buf, configfile);
 				setOption (op->val, buf + l + 1);
 				break;
@@ -656,6 +662,95 @@ static CFArrayRef createGenericDesktopMatchingDictionaries (void)	// see TN 2187
 	return matchingCFArrayRef;
 }
 
+pid_t forkAndRun(const char* command, const char* arg){
+  char path[2048] = {0}; // fingers crossed this is enough
+  // if((strlen(command)+strlen("/usr/bin/") + strlen(getenv("EPREFIX"))) >= sizeof(path)-1)
+  //   return -1;
+
+  strcat(path, "/usr/bin/");
+  strcat(path, command);
+  path[strlen(path)+1] = '\0';
+
+  pid_t fk = fork();
+  if (!fk) { /* in child */
+    /* I'm using execl here rather than exec because
+       it's easier to type the arguments. */
+    int ret = execl(path, command, arg, 0);
+    _exit(127); /* should not get here */
+  } else if (fk == -1) {
+    /* An error happened and you should do something about it. */
+    perror("fork"); /* print an error message */
+  }
+  return fk;
+}
+
+CGEventRef keyUpCallback (CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
+  NSEvent *e = [NSEvent eventWithCGEvent:event];
+  // assert([e type] == NSSystemDefined && [e subtype] == 8);
+  assert(type == NSSystemDefined);
+
+  int keyCode = (([e data1] & 0xFFFF0000) >> 16);
+  int keyFlags = ([e data1] & 0x0000FFFF);
+  int keyState = (((keyFlags & 0xFF00) >> 8)) == 0xA;
+  int keyRepeat = (keyFlags & 0x1);
+
+
+  if (keyState == 1) {
+
+
+    switch (keyCode) {
+
+      case NX_KEYTYPE_PLAY:
+        forkAndRun("cmus-remote", "--pause");
+        return NULL;
+
+      case NX_KEYTYPE_FAST:
+        forkAndRun("cmus-remote", "--next");
+        return NULL;
+
+      case NX_KEYTYPE_REWIND:
+        forkAndRun("cmus-remote", "--prev");
+        return NULL;
+
+    }
+  }
+
+  return event;
+}
+
+static void initializeMediaKeys (void)
+{
+  CFMachPortRef      eventTap;
+  CGEventMask        eventMask;
+  CFRunLoopSourceRef runLoopSource;
+
+  eventMask = ((1 << kCGEventKeyDown) | (1 << kCGEventKeyUp));
+
+    // CFMachPortRef eventTap = CGEventTapCreate(kCGHIDEventTap,kCGHeadInsertEventTap,kCGEventTapOptionListenOnly,CGEventMaskBit(kCGEventKeyUp),&keyUpCallback,NULL);
+  eventTap = CGEventTapCreate (kCGSessionEventTap,
+                               kCGHeadInsertEventTap,
+                               kCGEventTapOptionDefault,
+                               CGEventMaskBit(NX_SYSDEFINED) | eventMask,
+                               &keyUpCallback,
+                               NULL);
+  /* CFMachPortRef eventTap = CGEventTapCreate(kCGHIDEventTap,kCGHeadInsertEventTap,kCGEventTapOptionListenOnly,CGEventMaskBit(kCGEventFlagsChanged),&keyUpCallback,NULL); */
+
+  if(eventTap == NULL)
+    {
+        message (LOG_ERR, "Could not create event tap\n");
+        return;
+    }
+    runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorSystemDefault, eventTap, 0);
+    if(runLoopSource == NULL)
+    {
+      message (LOG_ERR, "Could not do stuff\n");
+      return;
+    }
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode);
+    CGEventTapEnable(eventTap, true);
+    CFRelease(eventTap);
+    CFRelease(runLoopSource);
+}
 
 static void initializeResumeNotifications (void)	// see TN 2187
 {
@@ -901,6 +996,13 @@ int main (int argc, char * const *argv)
 	signal (SIGINT, signalCallback);
 	signal (SIGTERM, signalCallback);
 	setupIdleTimer ();
+
+  // Boolean isTrusted = AXIsProcessTrustedWithOptions(CFDictionaryCreate(NULL,
+                                                                       // (const void*[]){ kAXTrustedCheckOptionPrompt },
+                                                                       // (const void*[]){ kCFBooleanTrue }, 1, NULL, NULL));
+
+
+  initializeMediaKeys ();
 	initializeResumeNotifications ();
 	initializePowerNotifications ();
 	initializeDisplayNotifications ();
