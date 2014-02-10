@@ -685,6 +685,7 @@ pid_t forkAndRun(const char* command, const char* arg){
 }
 
 CGEventRef keyUpCallback (CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
+  CGEventRef ret = event;
   NSEvent *e = [NSEvent eventWithCGEvent:event];
   // assert([e type] == NSSystemDefined && [e subtype] == 8);
   assert(type == NSSystemDefined);
@@ -702,20 +703,24 @@ CGEventRef keyUpCallback (CGEventTapProxy proxy, CGEventType type, CGEventRef ev
 
       case NX_KEYTYPE_PLAY:
         forkAndRun("cmus-remote", "--pause");
-        return NULL;
+        ret = NULL;
+        break;
 
       case NX_KEYTYPE_FAST:
         forkAndRun("cmus-remote", "--next");
-        return NULL;
+        ret = NULL;
+        break;
 
       case NX_KEYTYPE_REWIND:
         forkAndRun("cmus-remote", "--prev");
-        return NULL;
+        ret = NULL;
+        break;
 
     }
   }
 
-  return event;
+  [e release];
+  return ret;
 }
 
 static void initializeMediaKeys (void)
